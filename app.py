@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import base64
 import csv
-import math
 import docx
 import os
 from langchain.output_parsers import OutputFixingParser
@@ -12,7 +11,6 @@ from langchain.prompts import PromptTemplate, ChatPromptTemplate
 from langchain.chat_models import ChatOpenAI
 from langchain.output_parsers import ResponseSchema, StructuredOutputParser
 from dotenv import load_dotenv
-import pyperclip
 from langchain.callbacks import get_openai_callback
 from langchain.llms import OpenAI
 load_dotenv()
