@@ -61,69 +61,17 @@ def create_download_link(filename):
     return href
 
 
-def generate_questions(use_case_title): 
-    
-    st.subheader("Read and Answer the Below Questions")
-    
-    file_path = r'Questions to ask summary.docx'
-    questions_to_ask_summary = read_docx(file_path)
-     
+def generate_use_case_summary(df):
+    qa_list = df.set_index('Questions').to_dict()['Answer']
     title_template = """
-            Ask about the following in questions form questions based on the "{usecase}" provided.
-            Each Queston should have its in deatil description related to the "{usecase}"Given . 
-            Use "{questions_to_ask_summary}" document as a knowledge base for Generation of Question and in detail description for  "{usecase}". 
-            Step 1: Collecting Basic Information
-             1) Nature of Use Case: 
-             2) Number of User Interactions:
-             3) Purpose of Use Case: 
-             Step 2: Understanding User Group and Sensitivity
-             4) Intended User Group:
-             5) Sensitivity of Use Case and Data:
-             Step 3: Technical Details of LLM Implementation
-             6) Nature of LLMs Used:
-             7) Embedding Approach: 
-             8) Vector Stores:
-             9) Prompting Approach:
-             10) Fine-Tuning Approach:
-             11) Type of Evaluations: 
-             12) Guardrails:
-             13) Monitoring Approach:
-             14) Deployment Model:
-             15) Humans in the Loop:
-             16) Logging and Feedback Mechanism:
+    Create an LLM downstream use case context with all of the following information.
+         "{qa_list}"
                 """
     prompt = ChatPromptTemplate.from_template(template=title_template)
-    messages = prompt.format_messages(usecase=use_case_title, questions_to_ask_summary=3)
+    messages = prompt.format_messages(qa_list=qa_list)
     response = chat_llm(messages)
-    # doc.add_paragraph("Questions:")
-    # doc.add_paragraph(response.content)
-    questions=response.content
-    return response.content
-
-
-def generate_use_case_summary():
-    use_case_summary="""
-    Use Case Summary:
+    use_case_summary = response.content
     
-    Function: The chatbot is designed for answering FAQs related to customer queries.
-    User Interactions: It is expected to handle approximately 200 user interactions per month.
-    User Group: The primary users are the general public.
-    Data Sensitivity: The chatbot does not handle sensitive or Personally Identifiable Information (PII).
-    Deployment: The chatbot is deployed on a website hosted on Azure.
-    LLM Used: OpenAI's GPT model.
-    Database: Pinecone database is used.
-    Embedding Approach: OpenAI embeddings are utilized.
-    Prompting Approach: A simple prompting method is employed.
-    Fine-Tuning: The model has been fine-tuned on a specific dataset.
-    Evaluation: No formal evaluation has been done post-deployment.
-    Guardrails for Misuse: No specific measures mentioned for preventing misuse.
-    Monitoring: The chatbot is monitored by humans.
-    Deployment Model: Cloud-based deployment on Azure.
-    Human-in-the-Loop: There is no human-in-the-loop system for real-time oversight or intervention.
-    Logging and Feedback: No details provided on logging and feedback mechanisms.
-    """
-    ps2_doc.add_paragraph("Use Case Summary:")
-    ps2_doc.add_paragraph(use_case_summary)
     return use_case_summary
 
 def generate_risks(use_case_summary):
@@ -195,65 +143,94 @@ def generate_summary(doc):
    
 #UI
 
-st.title("LLM Risk Assessment Engine")
+def main():
+        
+    st.title("LLM Risk Assessment Engine")
 
-# Print the provided text
-st.write("""
-The LLM Risk Assessment Engine is designed to specialize in risk evaluation, providing insights and assessments for a range of risks including content risks, context risks, trust risks, and societal and sustainability risks.
-""")
-# Step 1: Get the use case title from the user
-use_case_title = st.text_input("Write Your Use Case")
+    # Print the provided text
+    st.write("""
+    The LLM Risk Assessment Engine is designed to specialize in risk evaluation, providing insights and assessments for a range of risks including content risks, context risks, trust risks, and societal and sustainability risks.
+    """)
+    # Step 1: Get the use case title from the user
+    use_case_title = st.text_input("Write Your Use Case")
 
-# Step 2: Ask Questions
-# Step 3 : Get Answer
-if use_case_title:
-    st.write(f"""Provide a brief about the {use_case_title}. 
-             The brief shall contain nature of use case, Nature of data, User group, Purpose of use case, Approach towards Embedding/ Prompt engineering/ Fine tuning / Evaluation, Guardrails applied, Role of Human in the loop, logging and feedback mechanism, sensitivity of use case and deployment model """)
-    user_answer_1 = st.text_area('Write your use case in brief', height=150)
+    # Step 2: Ask Questions
+    # Step 3 : Get Answer
+    if use_case_title:
+        st.write(f"""Provide a brief about the {use_case_title}.""")
+        questions = [
+        'What is the industry of the use case?',
+        'What is the nature of the use case?',
+        'What type of data is used?',
+        'What Language Model (LLM) is used?',
+        'What embedding approach is used?',
+        'What embedding model is used?',
+        'Who is the user group?',
+        'Is fine-tuning applied?',
+        'What is the domain context?',
+        'What vector store is used?',
+        'Is prompt engineering applied?',
+        'How is the model deployed?',
+        'How is the model monitored?',
+        'What logging and feedback mechanisms are used?',
+            'What guardrails are applied?'
+        ]
+        df = pd.DataFrame(questions, columns=['Questions'])
+        df['Answer'] = ''
 
-    # Step 4: Ask Question again which is not answered
-    # step 5 : Answer Remainng Question
-    if user_answer_1:
-        with st.spinner('Generating questions...'):
-            # doc.add_paragraph("Title:")
-            # doc.add_paragraph(use_case_title)
-            
-            question = generate_questions(use_case_title)
-        st.write(question)
-        user_answer_2 = st.text_area('Write your use case based on question asked', height=200)
-        # step 6: Show Use Case Summary 
-        if user_answer_2:
-            with st.spinner('Processing your use cases...'):
-                use_case_summary=generate_use_case_summary()
-                st.write(use_case_summary)
-                
-                
-####################################################################################################################
+        config = {
+            'Answer' : st.column_config.TextColumn('Answer (required)', width='large', required=True),
+        }
 
-                
-                if st.button("Generate Risk Assessment Document"):
-                # step 7 : button for generation risk , rank , actionables and final document
-                    with st.spinner('Generating Risks...'):
-                        # doc.add_paragraph("Answers:")
-                        # doc.add_paragraph(user_answer)
-                        risk_information = generate_risks(use_case_summary)
-                        st.subheader("Risk with Examples")
+        result = st.data_editor(df, column_config = config, num_rows='dynamic')
+        result.to_csv('result_1.csv', index=False)
+        
+        if st.button('Get results'):
+            st.write(result)
+            st.session_state['result'] = result  # Store result in session state
+
+        if 'result' in st.session_state:
+            if st.session_state['result']['Answer'].isnull().any():
+                st.write("Please answer all questions before continuing.")
+            elif st.button("Continue"):
+                with st.spinner('Processing your use_cases...'):
+                    data=pd.read_csv('result_1.csv')
+                    use_case_summary = generate_use_case_summary(data)
+                    st.session_state['use_case_summary'] = use_case_summary  # Store use_case_summary in session state
+                    st.write(use_case_summary)
+
+        if 'use_case_summary' in st.session_state:
+            if st.button("Generate Risk Assessment Document"):
+                with st.spinner('Generating Risks...'):
+                    risk_information = generate_risks(st.session_state['use_case_summary'])  # Use use_case_summary from session state
+                    st.session_state['risk_information'] = risk_information  # Store risk_information in session state
+                    st.subheader("Risk with Examples")
                     st.write(risk_information)
 
-                    with st.spinner('Ranking risks...'):
-                        risk_ranking = rank_risks(risk_information,use_case_title)
-                        st.subheader("Risk Ranking")
+                with st.spinner('Ranking risks...'):
+                    risk_ranking = rank_risks(st.session_state['risk_information'], use_case_title)  # Use risk_information from session state
+                    st.session_state['risk_ranking'] = risk_ranking  # Store risk_ranking in session state
+                    st.subheader("Risk Ranking")
                     st.write(risk_ranking)
 
-                    with st.spinner('Generating actionables for risk mitigation...'):
-                        actionables = mitigate_risks(risk_ranking)
+                with st.spinner('Generating actionables for risk mitigation...'):
+                    actionables = mitigate_risks(st.session_state['risk_ranking'])  # Use risk_ranking from session state
+                    st.session_state['actionables'] = actionables  # Store actionables in session state
                     st.write(actionables)
 
-                    with st.spinner('Compiling the final document...'):
-                        final_document = generate_summary(ps2_doc)
-                        ps2_doc.save("PS2 Doc.docx")
-                        filename = f"{use_case_title} Risk Assessment.docx"
-                        save_docx(final_document, filename)
-                        download_link = create_download_link(filename)
-                    st.markdown(download_link, unsafe_allow_html=True)
+                with st.spinner('Compiling the final document...'):
+                    final_document = generate_summary(ps2_doc)
+                    ps2_doc.save("PS2 Doc.docx")
+                    filename = f"{use_case_title} Risk Assessment.docx"
+                    save_docx(final_document, filename)
+                    download_link = create_download_link(filename)
+                    st.session_state['download_link'] = download_link  # Store download_link in session state
+                    st.markdown(st.session_state['download_link'], unsafe_allow_html=True)  # Use download_link from session state
+                    
+
+
+
+if __name__ == "__main__":
+    main()
+
 
