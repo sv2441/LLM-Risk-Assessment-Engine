@@ -17,6 +17,7 @@ import os
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import numpy as np
+import pandas as pd
 
 load_dotenv()
 
