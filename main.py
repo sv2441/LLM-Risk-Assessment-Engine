@@ -34,7 +34,7 @@ load_dotenv()
 
 
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
-os.environ["OPENAI_API_KEY"] = st.secrets["SERPAPI_API_KEY"]
+# os.environ["OPENAI_API_KEY"] = st.secrets["SERPAPI_API_KEY"]
 # os.environ["OPENAI_API_KEY"] = os.getenv('OPENAI_API_KEY')
 # os.environ['SERPAPI_API_KEY'] = os.getenv['SERPAPI_API_KEY'] 
 
@@ -42,10 +42,10 @@ os.environ["OPENAI_API_KEY"] = st.secrets["SERPAPI_API_KEY"]
 chat_llm = ChatOpenAI(model='gpt-3.5-turbo',temperature=0.0)
 
 embedding = OpenAIEmbeddings()
-tool_names = ["serpapi"]
-tools = load_tools(tool_names)
+# tool_names = ["serpapi"]
+# tools = load_tools(tool_names)
 
-agent = initialize_agent(tools, chat_llm, agent="zero-shot-react-description", verbose=True,handle_parsing_errors=True)
+# agent = initialize_agent(tools, chat_llm, agent="zero-shot-react-description", verbose=True,handle_parsing_errors=True)
 
 
 class step1_risk_struture(BaseModel):
